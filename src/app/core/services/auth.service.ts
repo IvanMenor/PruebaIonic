@@ -14,7 +14,7 @@ import { User } from '../models/user.models';
 })
 export class AuthService {
 
-  private apiUrl = `${environment.apiUrl}/auth`;
+  private apiUrl = `${environment.apiUrl}/api/auth`;
 
   constructor(
     private http: HttpClient,
