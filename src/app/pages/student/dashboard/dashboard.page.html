@@ -1,13 +1,253 @@
-<ion-header [translucent]="true">
+<ion-header class="app-header">
   <ion-toolbar>
-    <ion-title>dashboard</ion-title>
+    <ion-title>Portal Alumno</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="logout()" aria-label="Cerrar sesion">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="student-shell">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <section *ngIf="isLoading" class="state-card">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando tu espacio academico...</p>
+  </section>
+
+  <section *ngIf="!isLoading && errorMessage" class="state-card state-card--error">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <h2>No pudimos cargar el portal</h2>
+    <p>{{ errorMessage }}</p>
+    <ion-button (click)="loadWorkspace()">Reintentar</ion-button>
+  </section>
+
+  <ng-container *ngIf="!isLoading && !errorMessage && workspace as data">
+    <section class="hero-card">
+      <div class="hero-copy">
+        <span class="eyebrow">Estado academico actual</span>
+        <h1>{{ data.profile.fullName }}</h1>
+        <p>{{ data.profile.email }} · {{ data.profile.code }}</p>
+        <ion-chip color="success">
+          <ion-icon name="school-outline"></ion-icon>
+          <ion-label>{{ data.profile.academicStatus }}</ion-label>
+        </ion-chip>
+      </div>
+
+      <div class="hero-score">
+        <strong>{{ formatGrade(data.summary.averageGrade) }}</strong>
+        <span>Promedio</span>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <article class="metric-card">
+        <ion-icon name="book-outline"></ion-icon>
+        <span>Cursos</span>
+        <strong>{{ data.summary.activeCourses }}</strong>
+      </article>
+      <article class="metric-card">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Pendientes</span>
+        <strong>{{ data.summary.pendingActivities }}</strong>
+      </article>
+      <article class="metric-card">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <span>Entregadas</span>
+        <strong>{{ data.summary.deliveredActivities }}</strong>
+      </article>
+      <article class="metric-card">
+        <ion-icon name="ribbon-outline"></ion-icon>
+        <span>Calificadas</span>
+        <strong>{{ data.summary.gradedActivities }}</strong>
+      </article>
+    </section>
+
+    <ion-segment [(ngModel)]="activeSegment" class="section-tabs">
+      <ion-segment-button value="overview">
+        <ion-label>Inicio</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="courses">
+        <ion-label>Cursos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="activities">
+        <ion-label>Tareas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="timeline">
+        <ion-label>Historial</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <section *ngIf="activeSegment === 'overview'" class="content-stack">
+      <div class="section-heading">
+        <h2>Lo que sigue</h2>
+        <p>Actividades reales tomadas de tus cursos matriculados.</p>
+      </div>
+
+      <article *ngIf="pendingActivities(data.activities).length === 0" class="empty-card">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <h3>Sin pendientes por ahora</h3>
+        <p>Cuando un docente publique una actividad, aparecera aqui.</p>
+      </article>
+
+      <article
+        *ngFor="let activity of pendingActivities(data.activities); trackBy: trackActivity"
+        class="activity-card activity-card--featured">
+        <div>
+          <ion-badge [color]="statusColor(activity.status)">{{ activity.status }}</ion-badge>
+          <h3>{{ activity.title }}</h3>
+          <p>{{ activity.courseName }} · {{ activity.sectionName }}</p>
+        </div>
+        <div class="activity-meta">
+          <span>Vence {{ formatDate(activity.dueDate) }}</span>
+          <strong>{{ activity.maxGrade }} pts</strong>
+        </div>
+        <ion-button expand="block" (click)="openSubmission(activity)">
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          Entregar ahora
+        </ion-button>
+      </article>
+    </section>
+
+    <section *ngIf="activeSegment === 'courses'" class="content-stack">
+      <div class="section-heading">
+        <h2>Mis cursos</h2>
+        <p>Secciones, docentes y avance academico.</p>
+      </div>
+
+      <article *ngFor="let course of data.courses; trackBy: trackCourse" class="course-card">
+        <div class="course-head">
+          <span>{{ course.code }}</span>
+          <ion-badge color="primary">{{ course.period }}</ion-badge>
+        </div>
+        <h3>{{ course.name }}</h3>
+        <p>{{ course.description || 'Curso activo del periodo academico.' }}</p>
+        <div class="course-meta">
+          <span>{{ course.sectionName }}</span>
+          <span>{{ course.teacherName }}</span>
+        </div>
+        <ion-progress-bar [value]="course.progress / 100"></ion-progress-bar>
+        <div class="course-footer">
+          <span>{{ course.pendingActivities }} pendientes</span>
+          <strong>{{ course.progress }}%</strong>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="activeSegment === 'activities'" class="content-stack">
+      <div class="section-heading">
+        <h2>Actividades</h2>
+        <p>Entrega, revisa estados y consulta retroalimentacion.</p>
+      </div>
+
+      <article *ngFor="let activity of data.activities; trackBy: trackActivity" class="activity-card">
+        <div class="activity-title-row">
+          <div>
+            <ion-badge [color]="statusColor(activity.status)">{{ activity.status }}</ion-badge>
+            <h3>{{ activity.title }}</h3>
+            <p>{{ activity.courseName }} · {{ activity.sectionName }}</p>
+          </div>
+          <strong>{{ activity.maxGrade }} pts</strong>
+        </div>
+
+        <p class="description">{{ activity.description || 'Sin descripcion adicional.' }}</p>
+
+        <div class="activity-meta">
+          <span>Vence {{ formatDate(activity.dueDate) }}</span>
+          <span>Nota {{ formatGrade(activity.delivery?.grade ?? null) }}</span>
+        </div>
+
+        <ion-button expand="block" fill="outline" (click)="openSubmission(activity)">
+          {{ activityButtonLabel(activity) }}
+        </ion-button>
+      </article>
+    </section>
+
+    <section *ngIf="activeSegment === 'timeline'" class="content-stack">
+      <div class="section-heading">
+        <h2>Linea de tiempo</h2>
+        <p>Entregas, alertas y calificaciones recientes.</p>
+      </div>
+
+      <article *ngIf="data.timeline.length === 0" class="empty-card">
+        <ion-icon name="time-outline"></ion-icon>
+        <h3>Sin movimientos academicos</h3>
+        <p>Todavia no hay entregas o alertas registradas.</p>
+      </article>
+
+      <ion-list class="timeline-list" *ngIf="data.timeline.length > 0">
+        <ion-item *ngFor="let item of data.timeline; trackBy: trackTimeline">
+          <ion-label>
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.courseName }} · {{ formatDate(item.date) }}</p>
+            <p>{{ item.description || item.status || 'Movimiento academico registrado.' }}</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="statusColor(item.status)">{{ item.grade === null ? item.type : formatGrade(item.grade) }}</ion-badge>
+        </ion-item>
+      </ion-list>
+    </section>
+  </ng-container>
+
+  <ion-modal [isOpen]="selectedActivity !== null" (didDismiss)="closeSubmission()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Entrega de actividad</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeSubmission()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content" *ngIf="selectedActivity as activity">
+        <section class="modal-hero">
+          <ion-badge [color]="statusColor(activity.status)">{{ activity.status }}</ion-badge>
+          <h2>{{ activity.title }}</h2>
+          <p>{{ activity.courseName }} · vence {{ formatDate(activity.dueDate) }}</p>
+        </section>
+
+        <ion-card>
+          <ion-card-content>
+            <p class="description">{{ activity.description || 'El docente no agrego descripcion adicional.' }}</p>
+
+            <ion-item>
+              <ion-label position="stacked">Comentario para el docente</ion-label>
+              <ion-textarea
+                [(ngModel)]="submission.comentarioAlumno"
+                placeholder="Describe brevemente tu entrega">
+              </ion-textarea>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">URL de archivo o evidencia</ion-label>
+              <ion-input
+                [(ngModel)]="submission.archivoUrl"
+                placeholder="https://...">
+              </ion-input>
+            </ion-item>
+
+            <div *ngIf="activity.delivery" class="feedback-box">
+              <strong>Entrega registrada</strong>
+              <p>Nota: {{ formatGrade(activity.delivery.grade) }} / {{ activity.maxGrade }}</p>
+              <p>{{ activity.delivery.teacherComment || 'Aun sin retroalimentacion del docente.' }}</p>
+            </div>
+
+            <ion-button
+              expand="block"
+              [disabled]="!canSubmit(activity)"
+              (click)="submitSelectedActivity()">
+              <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+              {{ canSubmit(activity) ? 'Enviar entrega' : 'Entrega ya registrada' }}
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>

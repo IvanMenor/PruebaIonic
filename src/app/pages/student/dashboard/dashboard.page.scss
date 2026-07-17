@@ -1,0 +1,273 @@
+.app-header ion-toolbar {
+  --background: #f8fbff;
+  --border-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.student-shell {
+  --background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 34rem),
+    linear-gradient(180deg, #f5f8ff 0%, #eef3f8 100%);
+}
+
+.hero-card,
+.metric-card,
+.course-card,
+.activity-card,
+.empty-card,
+.state-card,
+.timeline-list,
+ion-card {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.hero-card {
+  margin: 18px 16px 14px;
+  padding: 24px;
+  border-radius: 30px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(255, 255, 255, 0.22), transparent 8rem),
+    linear-gradient(135deg, #0f4cff, #4f22d8);
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.hero-copy h1 {
+  margin: 8px 0 6px;
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.hero-copy p,
+.section-heading p,
+.course-card p,
+.activity-card p,
+.empty-card p,
+.state-card p {
+  color: #64748b;
+}
+
+.hero-copy p {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.eyebrow {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-score {
+  min-width: 92px;
+  height: 92px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.18);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.hero-score strong {
+  font-size: 1.7rem;
+}
+
+.hero-score span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 16px 14px;
+}
+
+.metric-card {
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.metric-card ion-icon {
+  font-size: 1.5rem;
+  color: #2563eb;
+}
+
+.metric-card span {
+  display: block;
+  margin-top: 10px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.metric-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.8rem;
+  color: #0f172a;
+}
+
+.section-tabs {
+  width: calc(100% - 32px);
+  margin: 0 16px 18px;
+  border-radius: 18px;
+  background: #e8eef7;
+}
+
+.content-stack {
+  display: grid;
+  gap: 14px;
+  padding: 0 16px 28px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.section-heading p {
+  margin: 6px 0 0;
+}
+
+.course-card,
+.activity-card,
+.empty-card {
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.course-head,
+.course-meta,
+.course-footer,
+.activity-title-row,
+.activity-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.course-head span,
+.activity-meta span,
+.course-footer span {
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.course-card h3,
+.activity-card h3 {
+  margin: 12px 0 6px;
+  color: #0f172a;
+  font-size: 1.22rem;
+  font-weight: 900;
+}
+
+.course-meta {
+  margin: 16px 0 12px;
+  color: #334155;
+  font-weight: 800;
+}
+
+.course-footer {
+  margin-top: 10px;
+}
+
+.activity-card--featured {
+  border-color: rgba(37, 99, 235, 0.32);
+}
+
+.activity-meta {
+  margin: 14px 0;
+}
+
+.description {
+  line-height: 1.5;
+}
+
+.empty-card,
+.state-card {
+  text-align: center;
+}
+
+.empty-card ion-icon,
+.state-card ion-icon {
+  font-size: 2.4rem;
+  color: #94a3b8;
+}
+
+.state-card {
+  margin: 28px 16px;
+  padding: 34px 22px;
+  border-radius: 26px;
+  background: #fff;
+}
+
+.state-card--error ion-icon {
+  color: #ef4444;
+}
+
+.timeline-list {
+  border-radius: 24px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.modal-content {
+  --background: #f6f8fc;
+}
+
+.modal-hero {
+  margin: 16px;
+  padding: 20px;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(135deg, #020617, #1e3a8a);
+}
+
+.modal-hero h2 {
+  margin: 10px 0 6px;
+  font-weight: 900;
+}
+
+.modal-hero p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.feedback-box {
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: 18px;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+@media (min-width: 720px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .content-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-heading,
+  .empty-card,
+  .timeline-list {
+    grid-column: 1 / -1;
+  }
+}

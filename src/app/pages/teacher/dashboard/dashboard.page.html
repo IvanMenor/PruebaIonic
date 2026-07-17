@@ -1,29 +1,306 @@
-<ion-header [translucent]="true">
+<ion-header class="app-header">
   <ion-toolbar>
-    <ion-title>Dashboard Profesor</ion-title>
+    <ion-title>Portal Docente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="openCreateActivity()" aria-label="Crear actividad">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" (click)="logout()" aria-label="Cerrar sesion">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Dashboard Profesor</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="teacher-shell">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-  <div class="ion-padding">
-    <h2>Bienvenido al panel del profesor</h2>
-    <p>Consulta tus cursos, actividades y estudiantes asignados.</p>
+  <section *ngIf="isLoading" class="state-card">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando tu aula docente...</p>
+  </section>
 
-    <div>
-      <strong>Acciones rápidas</strong>
-      <ul>
-        <li>Crear clase</li>
-        <li>Ver estudiantes</li>
-        <li>Revisar tareas</li>
-      </ul>
-    </div>
+  <section *ngIf="!isLoading && errorMessage" class="state-card state-card--error">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <h2>No pudimos cargar tu panel</h2>
+    <p>{{ errorMessage }}</p>
+    <ion-button (click)="loadWorkspace()">Reintentar</ion-button>
+  </section>
 
+  <ng-container *ngIf="!isLoading && !errorMessage && workspace as data">
+    <section class="hero-card">
+      <div>
+        <span class="eyebrow">Docencia activa</span>
+        <h1>Gestiona tus cursos</h1>
+        <p>Actividades, entregas y estudiantes conectados al backend real.</p>
+      </div>
+      <ion-button class="hero-action" (click)="openCreateActivity()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Crear
+      </ion-button>
+    </section>
 
-  </div>
+    <section class="stats-grid">
+      <article *ngFor="let stat of data.tasks.stats; trackBy: trackStat" class="metric-card">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>{{ stat.label }}</span>
+        <strong>{{ statValue(stat) }}</strong>
+        <small *ngIf="stat.subtext">{{ stat.subtext }}</small>
+      </article>
+    </section>
+
+    <ion-segment [(ngModel)]="activeSegment" class="section-tabs">
+      <ion-segment-button value="overview">
+        <ion-label>Inicio</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="students">
+        <ion-label>Alumnos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="tasks">
+        <ion-label>Tareas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="reviews">
+        <ion-label>Revisar</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <section *ngIf="activeSegment === 'overview'" class="content-stack">
+      <div class="section-heading">
+        <h2>Resumen operativo</h2>
+        <p>Lo urgente primero: entregas pendientes y estudiantes por observar.</p>
+      </div>
+
+      <article class="panel-card">
+        <h3>Entregas por revisar</h3>
+        <p *ngIf="pendingSubmissions(data.tasks.recentSubmissions).length === 0">No tienes entregas pendientes.</p>
+        <ion-list *ngIf="pendingSubmissions(data.tasks.recentSubmissions).length > 0">
+          <ion-item *ngFor="let submission of pendingSubmissions(data.tasks.recentSubmissions); trackBy: trackSubmission">
+            <ion-label>
+              <h4>{{ submission.taskName }}</h4>
+              <p>{{ submission.studentName }} · {{ submission.courseName }}</p>
+            </ion-label>
+            <ion-button slot="end" size="small" (click)="openGradeSubmission(submission)">Calificar</ion-button>
+          </ion-item>
+        </ion-list>
+      </article>
+
+      <article class="panel-card panel-card--dark">
+        <h3>Alertas academicas</h3>
+        <p *ngIf="data.students.alerts.length === 0">Todo el grupo esta dentro de parametros normales.</p>
+        <div *ngFor="let alert of data.students.alerts.slice(0, 3)" class="alert-row">
+          <strong>{{ alert.studentName }}</strong>
+          <span>{{ alert.description }}</span>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="activeSegment === 'students'" class="content-stack">
+      <div class="section-heading">
+        <h2>Estudiantes</h2>
+        <p>Promedios y asistencia reales segun tus secciones asignadas.</p>
+      </div>
+
+      <article *ngFor="let student of data.students.students; trackBy: trackStudent" class="student-card">
+        <div class="avatar">{{ student.name.slice(0, 2).toUpperCase() }}</div>
+        <div class="student-info">
+          <h3>{{ student.name }}</h3>
+          <p>{{ student.email }}</p>
+          <span>{{ student.course }} · {{ student.group }}</span>
+        </div>
+        <div class="student-metrics">
+          <ion-badge [color]="statusColor(student.status)">{{ student.status }}</ion-badge>
+          <strong>{{ formatGrade(student.averageGrade) }}</strong>
+          <small>Asist. {{ formatPercent(student.attendance) }}</small>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="activeSegment === 'tasks'" class="content-stack">
+      <div class="section-heading">
+        <h2>Actividades</h2>
+        <p>Seguimiento de publicaciones, entregas y vencimientos.</p>
+      </div>
+
+      <article *ngIf="data.tasks.tasks.length === 0" class="empty-card">
+        <ion-icon name="book-outline"></ion-icon>
+        <h3>Aun no hay actividades</h3>
+        <p>Crea la primera actividad para una de tus secciones.</p>
+        <ion-button (click)="openCreateActivity()">Crear actividad</ion-button>
+      </article>
+
+      <article *ngFor="let task of data.tasks.tasks; trackBy: trackTask" class="task-card">
+        <div class="task-head">
+          <ion-badge [color]="statusColor(task.status)">{{ task.status }}</ion-badge>
+          <span>{{ task.limitDate }}</span>
+        </div>
+        <h3>{{ task.name }}</h3>
+        <p>{{ task.course }} · {{ task.group }}</p>
+        <ion-progress-bar [value]="task.totalCount === 0 ? 0 : task.receivedCount / task.totalCount"></ion-progress-bar>
+        <div class="task-footer">
+          <span>{{ task.receivedCount }}/{{ task.totalCount }} entregas</span>
+          <strong>{{ task.publishedDate }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="activeSegment === 'reviews'" class="content-stack">
+      <div class="section-heading">
+        <h2>Revision de entregas</h2>
+        <p>Califica y registra retroalimentacion para cerrar el ciclo alumno-docente.</p>
+      </div>
+
+      <article *ngIf="data.tasks.recentSubmissions.length === 0" class="empty-card">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <h3>Sin entregas recibidas</h3>
+        <p>Cuando los alumnos entreguen actividades apareceran aqui.</p>
+      </article>
+
+      <article *ngFor="let submission of data.tasks.recentSubmissions; trackBy: trackSubmission" class="submission-card">
+        <div>
+          <ion-badge [color]="statusColor(submission.status)">{{ submission.status }}</ion-badge>
+          <h3>{{ submission.taskName }}</h3>
+          <p>{{ submission.studentName }} · {{ submission.courseName }}</p>
+        </div>
+        <div class="submission-meta">
+          <span>{{ submission.timeAgo }}</span>
+          <strong>{{ formatGrade(submission.grade) }} / {{ submission.maxGrade ?? 20 }}</strong>
+        </div>
+        <p class="comment">{{ submission.studentComment || 'Sin comentario del alumno.' }}</p>
+        <ion-button expand="block" (click)="openGradeSubmission(submission)">
+          <ion-icon name="star-outline" slot="start"></ion-icon>
+          Calificar entrega
+        </ion-button>
+      </article>
+    </section>
+  </ng-container>
+
+  <ion-modal [isOpen]="createModalOpen" (didDismiss)="closeCreateActivity()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nueva actividad</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeCreateActivity()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content">
+        <section class="modal-hero">
+          <ion-icon name="send-outline"></ion-icon>
+          <h2>Publicar para una seccion</h2>
+          <p>Los alumnos matriculados la veran automaticamente en su app.</p>
+        </section>
+
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Seccion</ion-label>
+              <ion-select [(ngModel)]="activityForm.seccionId" placeholder="Selecciona una seccion">
+                <ion-select-option *ngFor="let option of activityOptions; trackBy: trackOption" [value]="option.seccionId">
+                  {{ option.cursoCodigo }} · {{ option.cursoNombre }} · {{ option.seccionNombre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Titulo</ion-label>
+              <ion-input [(ngModel)]="activityForm.titulo" placeholder="Ej. Proyecto final"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Descripcion</ion-label>
+              <ion-textarea [(ngModel)]="activityForm.descripcion" placeholder="Indicaciones para el alumno"></ion-textarea>
+            </ion-item>
+
+            <div class="form-grid">
+              <ion-item>
+                <ion-label position="stacked">Tipo</ion-label>
+                <ion-select [(ngModel)]="activityForm.tipo">
+                  <ion-select-option value="TAREA">Tarea</ion-select-option>
+                  <ion-select-option value="PRACTICA">Practica</ion-select-option>
+                  <ion-select-option value="PC">PC</ion-select-option>
+                  <ion-select-option value="PROYECTO">Proyecto</ion-select-option>
+                  <ion-select-option value="EXAMEN">Examen</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Semana</ion-label>
+                <ion-input type="number" min="1" max="24" [(ngModel)]="activityForm.numeroSemana"></ion-input>
+              </ion-item>
+            </div>
+
+            <div class="form-grid">
+              <ion-item>
+                <ion-label position="stacked">Fecha limite</ion-label>
+                <ion-input type="datetime-local" [(ngModel)]="activityForm.fechaLimite"></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Nota maxima</ion-label>
+                <ion-input type="number" min="1" [(ngModel)]="activityForm.notaMaxima"></ion-input>
+              </ion-item>
+            </div>
+
+            <ion-button expand="block" (click)="createActivity()">
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              Crear actividad
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="selectedSubmission !== null" (didDismiss)="closeGradeSubmission()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Calificar entrega</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeGradeSubmission()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content" *ngIf="selectedSubmission as submission">
+        <section class="modal-hero modal-hero--dark">
+          <ion-badge [color]="statusColor(submission.status)">{{ submission.status }}</ion-badge>
+          <h2>{{ submission.taskName }}</h2>
+          <p>{{ submission.studentName }} · {{ submission.courseName }}</p>
+        </section>
+
+        <ion-card>
+          <ion-card-content>
+            <div class="student-comment">
+              <strong>Comentario del alumno</strong>
+              <p>{{ submission.studentComment || 'Sin comentario registrado.' }}</p>
+            </div>
+
+            <ion-item>
+              <ion-label position="stacked">Nota</ion-label>
+              <ion-input type="number" min="0" [max]="submission.maxGrade ?? 20" [(ngModel)]="gradeForm.nota"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Retroalimentacion</ion-label>
+              <ion-textarea [(ngModel)]="gradeForm.comentario" placeholder="Escribe una observacion breve para el alumno"></ion-textarea>
+            </ion-item>
+
+            <ion-button expand="block" (click)="gradeSelectedSubmission()">
+              <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+              Guardar calificacion
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
