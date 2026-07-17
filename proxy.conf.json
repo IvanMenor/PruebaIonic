@@ -3,6 +3,9 @@
     "target": "https://edutrack-backend-cp8w.onrender.com",
     "secure": true,
     "changeOrigin": true,
+    "headers": {
+      "Origin": "https://edutrackpe.vercel.app"
+    },
     "logLevel": "debug"
   }
 }

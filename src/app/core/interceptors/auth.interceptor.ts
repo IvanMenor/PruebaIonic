@@ -15,6 +15,10 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private storage: StorageService) {}
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    if (req.url.includes('/api/auth/')) {
+      return next.handle(req);
+    }
+
     return from(this.storage.getToken()).pipe(
       switchMap((token) => {
         const authReq = token
