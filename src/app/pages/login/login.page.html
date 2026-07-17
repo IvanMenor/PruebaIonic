@@ -1,0 +1,71 @@
+<ion-content [fullscreen]="true" class="login-content">
+
+  <div class="login-container">
+
+    <ion-card class="login-card">
+      <ion-card-content>
+
+        <div class="logo-container">
+          <ion-icon name="school-outline" class="logo-icon"></ion-icon>
+
+          <h1>EduTrack</h1>
+
+          <p>Bienvenido nuevamente</p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+          <div class="form-group">
+            <label>Correo institucional</label>
+
+            <ion-input
+              fill="outline"
+              type="email"
+              placeholder="correo@edutrack.edu"
+              formControlName="email">
+            </ion-input>
+          </div>
+
+          <div class="form-group">
+            <label>Contraseña</label>
+
+            <ion-input
+              fill="outline"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Ingrese su contraseña"
+              formControlName="password">
+            </ion-input>
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword">
+
+              <ion-icon
+                [name]="showPassword ? 'eye-off-outline' : 'eye-outline'">
+              </ion-icon>
+
+            </button>
+          </div>
+
+          <ion-button
+            type="submit"
+            expand="block"
+            class="login-button">
+
+            Iniciar sesión
+
+          </ion-button>
+
+        </form>
+
+        <div class="footer-text">
+          Sistema Académico
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+</ion-content>
