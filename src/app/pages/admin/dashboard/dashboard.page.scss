@@ -1,0 +1,59 @@
+ion-content {
+  --background: #f4f5f8;
+}
+
+ion-toolbar {
+  --background: #3880ff;
+  --color: white;
+}
+
+ion-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+ion-card-title {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+ion-card-content h1 {
+  text-align: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #3880ff;
+  margin: 10px 0;
+}
+
+ion-item {
+  --padding-start: 0;
+  margin-bottom: 10px;
+}
+
+ion-button {
+  margin-top: 20px;
+}
+
+ion-list {
+  background: transparent;
+}
+
+ion-label h2 {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+ion-label p {
+  margin: 4px 0;
+  color: #666;
+}
+
+@media (min-width: 768px) {
+
+  ion-content {
+    --padding-start: 40px;
+    --padding-end: 40px;
+  }
+
+}

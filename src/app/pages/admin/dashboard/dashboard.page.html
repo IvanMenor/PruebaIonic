@@ -1,13 +1,269 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>dashboard</ion-title>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Panel Administrador</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+
+  <!-- RESUMEN -->
+  <ion-grid>
+
+    <ion-row>
+
+      <ion-col size="12" sizeMd="4">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>👨‍🎓 Estudiantes</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <h1>{{ totalStudents }}</h1>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" sizeMd="4">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>👨‍🏫 Docentes</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <h1>{{ totalTeachers }}</h1>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" sizeMd="4">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>📚 Cursos</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <h1>{{ totalCourses }}</h1>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+    </ion-row>
+
+  </ion-grid>
+
+  <!-- AGREGAR ESTUDIANTE -->
+
+  <ion-card>
+
+    <ion-card-header>
+      <ion-card-title>Agregar Estudiante</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-item>
+        <ion-input
+          label="Nombres"
+          labelPlacement="stacked"
+          [(ngModel)]="newStudent.usuario.nombres">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Apellidos"
+          labelPlacement="stacked"
+          [(ngModel)]="newStudent.usuario.apellidos">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Correo"
+          labelPlacement="stacked"
+          [(ngModel)]="newStudent.usuario.email">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          type="password"
+          label="Contraseña"
+          labelPlacement="stacked"
+          [(ngModel)]="newStudent.usuario.password">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Código"
+          labelPlacement="stacked"
+          [(ngModel)]="newStudent.codigoEstudiante">
+        </ion-input>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        color="success"
+        (click)="createStudent()">
+
+        Guardar Estudiante
+
+      </ion-button>
+
+    </ion-card-content>
+
+  </ion-card>
+
+  <!-- LISTA ESTUDIANTES -->
+
+  <ion-card>
+
+    <ion-card-header>
+      <ion-card-title>Lista de Estudiantes</ion-card-title>
+    </ion-card-header>
+
+    <ion-list>
+
+      <ion-item *ngFor="let student of students">
+
+        <ion-label>
+
+          <h2>
+
+            {{ student.usuario.nombres }}
+            {{ student.usuario.apellidos }}
+
+          </h2>
+
+          <p>{{ student.usuario.email }}</p>
+
+          <p>
+            Código:
+            {{ student.codigoEstudiante }}
+          </p>
+
+        </ion-label>
+
+      </ion-item>
+
+    </ion-list>
+
+  </ion-card>
+
+  <!-- AGREGAR DOCENTE -->
+
+  <ion-card>
+
+    <ion-card-header>
+      <ion-card-title>Agregar Docente</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-item>
+        <ion-input
+          label="Nombres"
+          labelPlacement="stacked"
+          [(ngModel)]="newTeacher.usuario.nombres">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Apellidos"
+          labelPlacement="stacked"
+          [(ngModel)]="newTeacher.usuario.apellidos">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Correo"
+          labelPlacement="stacked"
+          [(ngModel)]="newTeacher.usuario.email">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          type="password"
+          label="Contraseña"
+          labelPlacement="stacked"
+          [(ngModel)]="newTeacher.usuario.password">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Código Docente"
+          labelPlacement="stacked"
+          [(ngModel)]="newTeacher.codigoDocente">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input
+          label="Especialidad"
+          labelPlacement="stacked"
+          [(ngModel)]="newTeacher.especialidad">
+        </ion-input>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        color="tertiary"
+        (click)="createTeacher()">
+
+        Guardar Docente
+
+      </ion-button>
+
+    </ion-card-content>
+
+  </ion-card>
+
+  <!-- LISTA DOCENTES -->
+
+  <ion-card>
+
+    <ion-card-header>
+      <ion-card-title>Lista de Docentes</ion-card-title>
+    </ion-card-header>
+
+    <ion-list>
+
+      <ion-item *ngFor="let teacher of teachers">
+
+        <ion-label>
+
+          <h2>
+
+            {{ teacher.usuario.nombres }}
+            {{ teacher.usuario.apellidos }}
+
+          </h2>
+
+          <p>{{ teacher.usuario.email }}</p>
+
+          <p>
+
+            {{ teacher.codigoDocente }}
+
+          </p>
+
+          <p>
+
+            {{ teacher.especialidad }}
+
+          </p>
+
+        </ion-label>
+
+      </ion-item>
+
+    </ion-list>
+
+  </ion-card>
+
 </ion-content>
