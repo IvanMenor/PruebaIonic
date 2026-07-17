@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://edutrack-backend-cp8w.onrender.com',
+  // En desarrollo usamos el proxy de Angular para apuntar a Render sin bloquear por CORS.
+  apiUrl: '',
 };
 /*
  * For easier debugging in development mode, you can import the following file
